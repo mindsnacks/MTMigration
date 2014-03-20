@@ -9,7 +9,8 @@
 #import <Foundation/Foundation.h>
 
 
-typedef void (^MTExecutionBlock)(void);
+typedef void (^MTExecutionBlock)(NSString *lastVersion,
+                                 NSString *newVersion);
 
 
 @interface MTMigration : NSObject

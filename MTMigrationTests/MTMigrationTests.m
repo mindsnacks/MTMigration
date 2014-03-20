@@ -11,46 +11,91 @@
 
 @implementation MTMigrationTests
 
-- (void)setUp
-{
-    [super setUp];
-    
-    // Set-up code here.
-}
-
-- (void)tearDown
-{
-    // Tear-down code here.
-    
-    [super tearDown];
-}
-
 - (void)testMigrationReset
 {
 	[MTMigration reset];
 	
 	__block NSInteger val = 0;
     
-	[MTMigration migrateToVersion:@"0.9" block:^{
+	[MTMigration migrateToVersion:@"0.9" block:^(NSString *lastVersion,
+                                                 NSString *newVersion) {
 		val++;
 	}];
     
-	[MTMigration migrateToVersion:@"1.0" block:^{
+	[MTMigration migrateToVersion:@"1.0" block:^(NSString *lastVersion,
+                                                 NSString *newVersion) {
 		val++;
 	}];
 	
 	[MTMigration reset];
 
-	[MTMigration migrateToVersion:@"0.9" block:^{
+	[MTMigration migrateToVersion:@"0.9" block:^(NSString *lastVersion,
+                                                 NSString *newVersion) {
 		val++;
 	}];
     
-	[MTMigration migrateToVersion:@"1.0" block:^{
+	[MTMigration migrateToVersion:@"1.0" block:^(NSString *lastVersion,
+                                                 NSString *newVersion) {
 		val++;
 	}];
 	
 	STAssertEquals(val, 4, @"Should execute all migrations again after reset");
+}
+
+- (void)testMigrateToVersionHasEmptyInitialVersion
+{
+	[MTMigration reset];
+	
+	__block NSString *result = nil;
     
+	[MTMigration migrateToVersion:@"0.9" block:^(NSString *lastVersion,
+                                                 NSString *newVersion) {
+        result = lastVersion;
+	}];
+    
+    STAssertEqualObjects(@"", result, @"Last version should be empty");
+}
+
+- (void)testMigrateToVersionHasNewVersion
+{
+	[MTMigration reset];
+	
+	__block NSString *result = nil;
+    
+	[MTMigration migrateToVersion:@"0.9" block:^(NSString *lastVersion,
+                                                 NSString *newVersion) {
+        result = newVersion;
+	}];
+    
+    STAssertEqualObjects(@"1.0", result, @"New version should be the current version");
+}
+
+- (void)testApplicationDidUpdateHasRightPreviousVersion
+{
+	[MTMigration reset];
+	
+	__block NSString *result = nil;
+    
+	[MTMigration applicationUpdateBlock:^(NSString *lastVersion,
+                                          NSString *newVersion) {
+        result = lastVersion;
+	}];
+    
+    STAssertEqualObjects(@"", result, @"Last version should be empty");
+}
+
+- (void)testApplicationDidUpdateHasRightNewVersion
+{
+	[MTMigration reset];
+	
+	__block NSString *result = nil;
+    
+	[MTMigration applicationUpdateBlock:^(NSString *lastVersion,
+                                          NSString *newVersion) {
+        result = newVersion;
+	}];
+    
+    STAssertEqualObjects(@"1.0", result, @"New version should be the current version");
 }
 
 - (void)testMigratesOnFirstRun
@@ -59,7 +104,8 @@
 	
 	__block NSInteger val = 0;
 	
-	[MTMigration migrateToVersion:@"1.0" block:^{
+	[MTMigration migrateToVersion:@"1.0" block:^(NSString *lastVersion,
+                                                 NSString *newVersion) {
 		val = 1;
 	}];
 	
@@ -73,10 +119,12 @@
 	
 	__block NSInteger val = 0;
 	
-	[MTMigration migrateToVersion:@"1.0" block:^{
+	[MTMigration migrateToVersion:@"1.0" block:^(NSString *lastVersion,
+                                                 NSString *newVersion) {
 	}];
 	
-	[MTMigration migrateToVersion:@"1.0" block:^{
+	[MTMigration migrateToVersion:@"1.0" block:^(NSString *lastVersion,
+                                                 NSString *newVersion) {
 		val = 1;
 	}];
 	
@@ -90,11 +138,13 @@
 	
 	__block NSInteger val = 0;
 	
-	[MTMigration migrateToVersion:@"0.9" block:^{
+	[MTMigration migrateToVersion:@"0.9" block:^(NSString *lastVersion,
+                                                 NSString *newVersion) {
 		val++;
 	}];
 	
-	[MTMigration migrateToVersion:@"1.0" block:^{
+	[MTMigration migrateToVersion:@"1.0" block:^(NSString *lastVersion,
+                                                 NSString *newVersion) {
 		val++;
 	}];
 	
@@ -108,11 +158,13 @@
 	
 	__block NSInteger val = 0;
 	
-	[MTMigration migrateToVersion:@"0.9" block:^{
+	[MTMigration migrateToVersion:@"0.9" block:^(NSString *lastVersion,
+                                                 NSString *newVersion) {
 		val++;
 	}];
 	
-	[MTMigration migrateToVersion:@"0.10" block:^{
+	[MTMigration migrateToVersion:@"0.10" block:^(NSString *lastVersion,
+                                                  NSString *newVersion) {
 		val*=2;
 	}];
 	
@@ -126,11 +178,13 @@
     
     __block NSInteger val = 0;
     
-    [MTMigration applicationUpdateBlock:^{
+    [MTMigration applicationUpdateBlock:^(NSString *lastVersion,
+                                          NSString *newVersion) {
         val++;
     }];
     
-    [MTMigration applicationUpdateBlock:^{
+    [MTMigration applicationUpdateBlock:^(NSString *lastVersion,
+                                          NSString *newVersion) {
         val++;
     }];
     
@@ -143,19 +197,23 @@
 	
 	__block NSInteger val = 0;
     
-    [MTMigration migrateToVersion:@"0.8" block:^{
+    [MTMigration migrateToVersion:@"0.8" block:^(NSString *lastVersion,
+                                                 NSString *newVersion) {
 		// Do something
 	}];
 	
-	[MTMigration migrateToVersion:@"0.9" block:^{
+	[MTMigration migrateToVersion:@"0.9" block:^(NSString *lastVersion,
+                                                 NSString *newVersion) {
 		// Do something
 	}];
 	
-	[MTMigration migrateToVersion:@"0.10" block:^{
+	[MTMigration migrateToVersion:@"0.10" block:^(NSString *lastVersion,
+                                                  NSString *newVersion) {
 		// Do something
 	}];
     
-    [MTMigration applicationUpdateBlock:^{
+    [MTMigration applicationUpdateBlock:^(NSString *lastVersion,
+                                          NSString *newVersion) {
         val = 1;
     }];
 	
