@@ -18,16 +18,9 @@ static NSString * const MTMigrationLastAppVersionKey   = @"MTMigration.lastAppVe
     if ([version compare:[self lastMigrationVersion] options:NSNumericSearch] == NSOrderedDescending &&
         [version compare:[self appVersion] options:NSNumericSearch]           != NSOrderedDescending) {
 		
-            migrationBlock();
+        migrationBlock();
 		
-            #if DEBUG
-                NSLog(@"MTMigration: Running migration for version %@", version);
-            #endif
-		
-            [self setLastMigrationVersion:version];
-        
-        
-        
+        [self setLastMigrationVersion:version];
 	}
 }
 
@@ -36,23 +29,16 @@ static NSString * const MTMigrationLastAppVersionKey   = @"MTMigration.lastAppVe
     if (![[self lastAppVersion] isEqualToString:[self appVersion]]) {
         
         updateBlock();
-        
-        #if DEBUG
-            NSLog(@"MTMigration: Running update Block");
-        #endif
-        
+
         [self setLastAppVersion:[self appVersion]];
     }
 }
-
 
 
 + (void) reset {
     [self setLastMigrationVersion:nil];
     [self setLastAppVersion:nil];
 }
-
-
 
 
 + (NSString *)appVersion {
@@ -66,7 +52,7 @@ static NSString * const MTMigrationLastAppVersionKey   = @"MTMigration.lastAppVe
 
 + (NSString *) lastMigrationVersion {
     NSString *res = [[NSUserDefaults standardUserDefaults] valueForKey:MTMigrationLastVersionKey];
-
+    
     return (res ? res : @"");
 }
 
